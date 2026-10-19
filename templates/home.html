@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block content %}
+    <section class="hero">
+      <div class="hero-copy">
+        <h1>Il toolkit<br> per chi fa<br> beat.</h1>
+        <p class="lede">Prendi un campione da YouTube, Spotify, TikTok o Instagram, poi scopri tonalità e tempo prima di trascinarlo nella DAW.</p>
+        <div class="hero-actions">
+          <a href="{{ url.downloader }}" class="cta">Scarica un brano</a>
+          <a href="{{ url.key_bpm }}" class="ghost">Trova key &amp; BPM</a>
+        </div>
+        <ul class="hero-facts">
+          <li><strong>MP3 320k, WAV, MP4</strong> pronti per la DAW</li>
+          <li><strong>Analisi nel browser</strong> i tuoi file restano tuoi</li>
+          <li><strong>Gratis</strong> niente account</li>
+        </ul>
+      </div>
+
+      <figure class="demo" aria-label="Esempio di risultato dell'analisi">
+        <div class="demo-head">
+          <span class="demo-file">late-night-loop.wav</span>
+          <span class="demo-time">0:42</span>
+        </div>
+        <div class="demo-wave" aria-hidden="true"></div>
+        <div class="demo-read">
+          <div>
+            <span class="cap">Tempo</span>
+            <span class="demo-big">94<small>bpm</small></span>
+          </div>
+          <div>
+            <span class="cap">Tonalità</span>
+            <span class="demo-big">F♯m</span>
+          </div>
+          <span class="camelot">11A</span>
+        </div>
+        <figcaption>Così appare un'analisi: tempo, tonalità e codice Camelot per il mix armonico.</figcaption>
+      </figure>
+    </section>
+
+    <section id="strumenti" class="tools" aria-labelledby="tools-title">
+      <div class="tools-inner">
+        <h2 id="tools-title" class="section-title">Strumenti</h2>
+        <div class="tool-cards">
+          <a class="tool-card" href="{{ url.downloader }}">
+            <h3>Downloader</h3>
+            <p>Incolla un link e scarica l'audio in MP3 o WAV, o il video in MP4.</p>
+            <div class="chips" aria-label="Piattaforme supportate">
+              <span>YouTube</span><span>Spotify</span><span>TikTok</span><span>Instagram</span>
+            </div>
+            {% if static_site %}<p class="card-note">Gira sul tuo computer: le istruzioni sono nella pagina.</p>{% endif %}
+            <span class="go">Apri il downloader</span>
+          </a>
+          <a class="tool-card" href="{{ url.key_bpm }}">
+            <h3>Key &amp; BPM</h3>
+            <p>Trascina un file audio e scopri tempo, tonalità e codice Camelot in pochi secondi.</p>
+            <div class="mini-read" aria-hidden="true">128<small>bpm</small> Am<small>8A</small></div>
+            <span class="go">Apri Key &amp; BPM</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="come-funziona" class="how" aria-labelledby="how-title">
+      <h2 id="how-title" class="section-title">Come funziona</h2>
+      <div class="how-grid">
+        <div>
+          <h3>Scaricare un brano</h3>
+          <ol class="steps">
+            <li><strong>Incolla il link.</strong> Beetzw riconosce la piattaforma e ti mostra titolo e copertina.</li>
+            <li><strong>Scegli il formato.</strong> MP3 per l'ascolto, WAV per campionare senza perdite, MP4 se ti serve il video.</li>
+            <li><strong>Scarica.</strong> Il file arriva nella cartella Download, pronto da importare.</li>
+          </ol>
+        </div>
+        <div>
+          <h3>Trovare key &amp; BPM</h3>
+          <ol class="steps">
+            <li><strong>Trascina il file.</strong> Oppure analizza direttamente quello appena scaricato.</li>
+            <li><strong>Leggi il risultato.</strong> Tempo, tonalità e codice Camelot in pochi secondi.</li>
+            <li><strong>Correggi se serve.</strong> Se il tempo esce dimezzato o doppio, usa ÷2 o ×2.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title" class="section-title">Domande frequenti</h2>
+      <div class="faq-list">
+        <details>
+          <summary>Come fa a scaricare da Spotify?</summary>
+          <p>Spotify protegge i brani, quindi Beetzw legge titolo e artista della traccia e scarica lo stesso brano da YouTube. Funziona con singole tracce, non con playlist o album.</p>
+        </details>
+        <details>
+          <summary>I miei file vengono caricati da qualche parte?</summary>
+          <p>No. L'analisi di key e BPM avviene interamente nel tuo browser: il file non lascia mai il tuo computer.</p>
+        </details>
+        <details>
+          <summary>Perché il BPM a volte è la metà o il doppio?</summary>
+          <p>Un brano a 140 bpm e uno a 70 hanno la stessa griglia ritmica, e l'algoritmo non sempre sa quale intendi. Usa ÷2 o ×2 per scegliere quello giusto per il tuo genere.</p>
+        </details>
+        <details>
+          <summary>Cos'è il codice Camelot?</summary>
+          <p>È un modo rapido di leggere le tonalità per mixare in armonia: codici vicini (es. 8A, 7A, 9A, 8B) suonano bene insieme.</p>
+        </details>
+        <details>
+          <summary>Non riesco a scaricare un post Instagram.</summary>
+          <p>Alcuni post e reel sono visibili solo dopo il login o sono privati. In quel caso Beetzw non può scaricarli.</p>
+        </details>
+        <details>
+          <summary>Posso usare quello che scarico nelle mie produzioni?</summary>
+          <p>Dipende dai diritti del brano. Scarica e campiona solo contenuti che hai il permesso di usare, oppure liberi da diritti.</p>
+        </details>
+      </div>
+    </section>
+{% endblock %}

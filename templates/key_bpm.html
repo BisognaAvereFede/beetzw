@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Key &amp; BPM finder — Beetzw{% endblock %}
+{% block description %}Trova tempo, tonalità e codice Camelot di qualsiasi file audio, direttamente nel browser.{% endblock %}
+{% block content %}
+    <div class="page-head">
+      <h1>Key &amp; BPM</h1>
+      <p class="lede">Trova tempo, tonalità e codice Camelot di un file audio. L'analisi avviene nel tuo browser.</p>
+    </div>
+
+    <div class="page-body">
+      <label id="drop" class="drop" for="file">
+        <input id="file" type="file" accept="audio/*,video/mp4" class="sr-only">
+        <span class="drop-main">Trascina qui un file audio</span>
+        <span class="drop-sub">oppure clicca per sceglierlo · MP3, WAV, M4A, FLAC, AIFF</span>
+      </label>
+      <p id="an-status" class="status" role="status" aria-live="polite"></p>
+
+      <div id="result" class="result" hidden>
+        <p id="an-file" class="an-file"></p>
+        <div class="readout">
+          <div class="cell">
+            <span class="cap">Tempo</span>
+            <span class="big"><span id="bpm">—</span><span class="unit">bpm</span></span>
+            <span class="row">
+              <span id="pulse" class="pulse" aria-hidden="true"></span>
+              <button type="button" class="mini" id="half">÷2</button>
+              <button type="button" class="mini" id="double">×2</button>
+            </span>
+          </div>
+          <div class="cell">
+            <span class="cap">Tonalità</span>
+            <span class="big" id="key">—</span>
+            <span class="row"><span class="camelot" id="camelot"></span><span class="alt" id="alt"></span></span>
+          </div>
+        </div>
+        <div class="chroma" id="chroma" aria-label="Distribuzione delle note"></div>
+        <audio id="player" controls></audio>
+      </div>
+
+      <p class="page-note">Il file non viene caricato da nessuna parte. Se il tempo esce dimezzato o doppio, usa ÷2 o ×2. Ti serve prima il brano? <a href="{{ url.downloader }}">Apri il downloader</a>.</p>
+    </div>
+{% endblock %}
+{% block scripts %}<script src="{{ asset('analyzer.js') }}"></script><script src="{{ asset('keybpm.js') }}"></script>{% endblock %}
