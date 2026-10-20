@@ -24,6 +24,8 @@ jobs:
           python-version: "3.12"
       - run: pip install jinja2
       - run: python build.py
+        env:
+          BEETZW_API: ${{ vars.BEETZW_API }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

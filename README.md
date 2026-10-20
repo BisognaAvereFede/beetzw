@@ -34,13 +34,24 @@ La dark mode segue il sistema finché non si sceglie un tema con il pulsante nel
   Analizza fino a 2 minuti di audio; se il BPM esce dimezzato o doppio usa i tasti ÷2 / ×2.
 - Se i download smettono di funzionare, aggiorna yt-dlp: `.venv/bin/pip install -U yt-dlp`.
 
-## Versione online (GitHub Pages)
+## Versione online
 
-GitHub Pages ospita solo file statici, quindi online ci sono la home e **Key & BPM** (che gira tutta nel browser).
-La pagina Downloader online spiega come avviare Beetzw in locale, perché scaricare richiede il server Python.
+- **Sito** (GitHub Pages): https://bisognaaverefede.github.io/beetzw/ — home, Key & BPM e la pagina del downloader.
+- **Server del downloader** (Render, piano gratuito): `Dockerfile` + `render.yaml`, con yt-dlp, ffmpeg e deno.
 
-- `build.py` genera il sito statico in `_site/` usando gli stessi template.
-- `.github/workflows/pages.yml` lo ricostruisce e lo pubblica a ogni push su `main`.
-- Una volta sola, nel repository su GitHub: **Settings → Pages → Source: GitHub Actions**.
+`build.py` genera il sito statico in `_site/` usando gli stessi template, e
+`.github/workflows/pages.yml` lo pubblica a ogni push su `main`.
+Il downloader online chiama `https://beetzw-api.onrender.com`; se il server su Render ha un altro indirizzo,
+impostalo in GitHub → Settings → Secrets and variables → Actions → Variables come `BEETZW_API`.
 
-Per provarlo in locale: `python3 build.py && python3 -m http.server --directory _site`.
+Limiti del server (variabili d'ambiente su Render):
+
+| Variabile | Default | Cosa fa |
+|---|---|---|
+| `BEETZW_ORIGINS` | `https://bisognaaverefede.github.io` | domini che possono usare il server |
+| `BEETZW_MAX_DURATION` | `900` | durata massima in secondi |
+| `BEETZW_RATE_LIMIT` | `10` | download per IP ogni 10 minuti |
+| `BEETZW_MAX_PARALLEL` | `2` | download contemporanei |
+
+Il piano gratuito di Render va in pausa dopo 15 minuti senza richieste: la prima richiesta dopo la pausa
+impiega 30–50 secondi (la pagina avvisa l'utente). YouTube a volte blocca i server cloud.

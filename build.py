@@ -1,8 +1,8 @@
 """Genera la versione statica di Beetzw per GitHub Pages in _site/.
 
-Usa gli stessi template di app.py. Il downloader ha bisogno del server
-Python, quindi nella versione statica la sua pagina spiega come avviarlo
-in locale. Key & BPM funziona uguale, perché gira tutto nel browser.
+Usa gli stessi template di app.py. Le pagine sono statiche; il downloader
+chiama il server Python ospitato su Render (vedi render.yaml), mentre
+Key & BPM gira tutto nel browser.
 
     python3 build.py
 """
@@ -19,6 +19,8 @@ OUT = ROOT / "_site"
 # Su GitHub Actions GITHUB_REPOSITORY vale "utente/repo".
 REPO = os.environ.get("GITHUB_REPOSITORY", "")
 REPO_URL = f"https://github.com/{REPO}" if REPO else "https://github.com"
+# Server del downloader (Render). Si cambia con la variabile BEETZW_API.
+API_URL = (os.environ.get("BEETZW_API") or "https://beetzw-api.onrender.com").rstrip("/")
 
 PAGES = {
     "index.html": ("home.html", "home"),
@@ -38,6 +40,7 @@ def main():
         "asset": lambda path: path,
         "static_site": True,
         "repo_url": REPO_URL,
+        "api_url": API_URL,
     }
 
     if OUT.exists():

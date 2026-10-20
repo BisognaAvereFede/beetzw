@@ -206,22 +206,6 @@ a { color: inherit; }
 .page-note { margin: 48px 0 0; font-size: 14px; color: var(--muted); max-width: 60ch; }
 .page-note a { color: var(--pink-deep); }
 
-.tool-card .card-note { font-size: 14px; }
-
-/* Downloader nella versione online (GitHub Pages) */
-.local-only {
-  display: grid; gap: 18px; justify-items: start;
-  padding: 30px; border-radius: 28px; background: var(--blush);
-}
-.local-only h2 { margin: 0; font: 800 clamp(24px, 3.4vw, 32px)/1.05 var(--display); letter-spacing: -0.03em; }
-.local-only > p { margin: 0; color: var(--muted); max-width: 58ch; }
-.local-only .steps li { max-width: none; }
-.local-only .steps li::before { background: var(--bg); }
-.local-only code {
-  display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 6px;
-  background: var(--bg); color: var(--ink); font-size: 14px; overflow-wrap: anywhere;
-}
-
 /* How it works */
 .how { padding-top: 96px; padding-bottom: 96px; border-top: 1px solid var(--petal); }
 .how-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }

@@ -4,26 +4,10 @@
 {% block content %}
     <div class="page-head">
       <h1>Downloader</h1>
-      {% if static_site %}
-      <p class="lede">Scarica l'audio da YouTube, Spotify, TikTok o Instagram in MP3, WAV o MP4.</p>
-      {% else %}
       <p class="lede">Incolla un link di YouTube, Spotify, TikTok o Instagram e scegli il formato.</p>
-      {% endif %}
     </div>
 
     <div class="page-body">
-      {% if static_site %}
-      <div class="local-only">
-        <h2>Il downloader funziona sul tuo computer</h2>
-        <p>Per scaricare serve un piccolo server con yt-dlp e ffmpeg, che questa versione online non può avere. Avvialo in locale in pochi minuti: avrai tutto Beetzw, downloader compreso, su <code>http://127.0.0.1:5173</code>.</p>
-        <ol class="steps">
-          <li><strong>Installa Python 3 e ffmpeg.</strong> Su Mac: <code>brew install python ffmpeg</code></li>
-          <li><strong>Scarica il progetto.</strong> <code>git clone {{ repo_url }}.git</code></li>
-          <li><strong>Avvialo.</strong> Nella cartella del progetto: <code>python3 -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements.txt &amp;&amp; .venv/bin/python app.py</code></li>
-        </ol>
-        <a class="ghost" href="{{ repo_url }}">Apri il progetto su GitHub</a>
-      </div>
-      {% else %}
       <form id="dl-form" class="dl" autocomplete="off">
         <label for="url" class="sr-only">Link da scaricare</label>
         <input id="url" name="url" type="url" inputmode="url" placeholder="Incolla un link…" required autofocus>
@@ -54,9 +38,8 @@
         <p id="dl-status" class="status" role="status" aria-live="polite"></p>
         <button id="dl-analyze" class="ghost" type="button" hidden>Trova key &amp; BPM di questo file</button>
       </form>
-      {% endif %}
 
-      <p class="page-note">Da Spotify vengono scaricate solo singole tracce: Beetzw cerca lo stesso brano su YouTube. Alcuni post Instagram richiedono il login e non si possono scaricare. Hai già il file? <a href="{{ url.key_bpm }}">Trova key &amp; BPM</a>.</p>
+      <p class="page-note">Da Spotify vengono scaricate solo singole tracce: Beetzw cerca lo stesso brano su YouTube. Alcuni post Instagram richiedono il login e non si possono scaricare. I contenuti possono durare al massimo 15 minuti. Hai già il file? <a href="{{ url.key_bpm }}">Trova key &amp; BPM</a>.</p>
     </div>
 {% endblock %}
-{% block scripts %}{% if not static_site %}<script src="{{ asset('downloader.js') }}"></script>{% endif %}{% endblock %}
+{% block scripts %}<script src="{{ asset('downloader.js') }}"></script>{% endblock %}

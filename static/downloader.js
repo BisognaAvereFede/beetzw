@@ -14,6 +14,39 @@
   const mp4 = form.querySelector('input[value="mp4"]');
   let lastBlob = null, lastName = "", infoTimer, infoFor = "";
 
+  // In locale le API sono sullo stesso server; online (GitHub Pages) su Render.
+  const API = document.body.dataset.api || "";
+
+  async function api(path, body) {
+    let r;
+    try {
+      r = await fetch(API + path, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    } catch (e) {
+      throw new Error("Il server di Beetzw non risponde. Riprova tra qualche secondo.");
+    }
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      throw new Error(d.error || "Il server di Beetzw ha avuto un problema (errore " + r.status + "). Riprova.");
+    }
+    return r;
+  }
+
+  // Il server gratuito si addormenta: lo svegliamo appena si apre la pagina.
+  let awake = !API;
+  if (API) {
+    const slow = setTimeout(() => {
+      if (!awake) setStatus("Sto avviando il server, la prima volta può volerci fino a un minuto…");
+    }, 2500);
+    fetch(API + "/api/health").then(() => {
+      awake = true;
+      clearTimeout(slow);
+      if (status.textContent.startsWith("Sto avviando")) setStatus("");
+    }).catch(() => clearTimeout(slow));
+  }
+
   const fmt = () => form.querySelector('input[name="format"]:checked').value;
   const setStatus = (msg, err) => { status.textContent = msg; status.classList.toggle("err", !!err); };
 
@@ -38,13 +71,8 @@
     infoFor = v;
     setStatus("Leggo il link…");
     try {
-      const r = await fetch("/api/info", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: v }),
-      });
-      const d = await r.json();
+      const d = await (await api("/api/info", { url: v })).json();
       if (v !== url.value.trim()) return;
-      if (!r.ok) throw new Error(d.error);
       $("#pv-thumb").src = d.thumbnail || "";
       $("#pv-thumb").hidden = !d.thumbnail;
       $("#pv-title").textContent = d.title;
@@ -75,11 +103,7 @@
     $("#dl-analyze").hidden = true;
     setStatus("Può volerci un po' per i file lunghi o in WAV.");
     try {
-      const r = await fetch("/api/download", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.value.trim(), format: fmt() }),
-      });
-      if (!r.ok) throw new Error((await r.json()).error);
+      const r = await api("/api/download", { url: url.value.trim(), format: fmt() });
       const blob = await r.blob();
       const name = filename(r.headers.get("Content-Disposition")) || "beetzw." + fmt();
       const a = document.createElement("a");

@@ -10,7 +10,10 @@ import os
 import re
 import shutil
 import tempfile
+import threading
+import time
 import urllib.request
+from collections import defaultdict, deque
 from pathlib import Path
 
 import certifi
@@ -31,6 +34,21 @@ PLATFORMS = {
 }
 
 FORMATS = {"mp3", "wav", "mp4"}
+
+# Il sito su GitHub Pages chiama questo server da un altro dominio.
+ALLOWED_ORIGINS = {
+    o.strip() for o in os.environ.get(
+        "BEETZW_ORIGINS",
+        "https://bisognaaverefede.github.io,http://localhost:5174,http://127.0.0.1:5174",
+    ).split(",") if o.strip()
+}
+# Limiti per non far esplodere un server gratuito (512 MB di RAM).
+MAX_DURATION = int(os.environ.get("BEETZW_MAX_DURATION", 15 * 60))  # secondi
+RATE_LIMIT = int(os.environ.get("BEETZW_RATE_LIMIT", 10))  # download per IP...
+RATE_WINDOW = 10 * 60  # ...ogni 10 minuti
+download_slots = threading.Semaphore(int(os.environ.get("BEETZW_MAX_PARALLEL", 2)))
+recent = defaultdict(deque)
+recent_lock = threading.Lock()
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 
 
@@ -91,10 +109,46 @@ def ydl_opts(fmt: str, outdir: str) -> dict:
     return opts
 
 
+def client_ip() -> str:
+    # Su Render la richiesta passa da un proxy: il primo IP è quello reale.
+    fwd = request.headers.get("X-Forwarded-For", "")
+    return fwd.split(",")[0].strip() or request.remote_addr or "?"
+
+
+def rate_limited(ip: str) -> bool:
+    now = time.time()
+    with recent_lock:
+        q = recent[ip]
+        while q and now - q[0] > RATE_WINDOW:
+            q.popleft()
+        if len(q) >= RATE_LIMIT:
+            return True
+        q.append(now)
+        return False
+
+
+def check_duration(info: dict):
+    duration = info.get("duration")
+    if duration and duration > MAX_DURATION:
+        raise UserError(f"Il contenuto dura più di {MAX_DURATION // 60} minuti: scegline uno più corto.")
+
+
 def first_entry(info: dict) -> dict:
     if info.get("_type") == "playlist" and info.get("entries"):
         return info["entries"][0]
     return info
+
+
+@app.after_request
+def cors(resp):
+    origin = request.headers.get("Origin")
+    if origin in ALLOWED_ORIGINS:
+        resp.headers["Access-Control-Allow-Origin"] = origin
+        resp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        resp.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
+        resp.headers["Vary"] = "Origin"
+    return resp
 
 
 # Gli stessi template servono anche per la versione statica (build.py),
@@ -105,6 +159,7 @@ def links():
         "url": {"home": "/", "downloader": "/downloader", "key_bpm": "/key-bpm"},
         "asset": lambda path: "/" + path,
         "static_site": False,
+        "api_url": "",
     }
 
 
@@ -121,6 +176,12 @@ def downloader():
 @app.get("/key-bpm")
 def key_bpm():
     return render_template("key_bpm.html", active="key-bpm")
+
+
+@app.get("/api/health")
+def api_health():
+    # Il sito lo chiama all'apertura per svegliare il server gratuito.
+    return jsonify(ok=True)
 
 
 @app.post("/api/info")
@@ -155,6 +216,11 @@ def api_download():
     if fmt not in FORMATS:
         return jsonify(error="Formato non supportato."), 400
 
+    if rate_limited(client_ip()):
+        return jsonify(error="Hai fatto molti download di fila: riprova tra qualche minuto."), 429
+    if not download_slots.acquire(blocking=False):
+        return jsonify(error="Il server è occupato con altri download: riprova tra poco."), 503
+
     tmp = tempfile.mkdtemp(prefix="beetzw-")
     try:
         platform = detect_platform(url)
@@ -164,7 +230,9 @@ def api_download():
                 raise UserError("Spotify è solo audio: scegli MP3 o WAV.")
             target, _ = spotify_to_search(url)
         with yt_dlp.YoutubeDL(ydl_opts(fmt, tmp)) as ydl:
-            ydl.download([target])
+            info = first_entry(ydl.extract_info(target, download=False))
+            check_duration(info)
+            ydl.process_ie_result(info, download=True)
         files = [p for p in Path(tmp).iterdir() if p.suffix.lstrip(".") == fmt]
         if not files:
             raise UserError("Download completato ma il file non è stato creato. ffmpeg è installato?")
@@ -178,12 +246,16 @@ def api_download():
     except yt_dlp.utils.DownloadError as e:
         shutil.rmtree(tmp, ignore_errors=True)
         return jsonify(error=friendly(e)), 400
+    finally:
+        download_slots.release()
 
 
 def friendly(e: Exception) -> str:
     msg = str(e)
     if "login" in msg.lower() or "private" in msg.lower():
         return "Questo contenuto è privato o richiede il login."
+    if "not a bot" in msg.lower() or "sign in to confirm" in msg.lower():
+        return "YouTube ha bloccato il server di Beetzw. Riprova più tardi o usa un altro link."
     if "unavailable" in msg.lower():
         return "Contenuto non disponibile."
     return "Download non riuscito: " + re.sub(r"^ERROR:\s*", "", msg)[:200]

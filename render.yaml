@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: beetzw-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: BEETZW_ORIGINS
+        value: https://bisognaaverefede.github.io
