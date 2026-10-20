@@ -9,6 +9,7 @@ import html
 import os
 import re
 import shutil
+import sys
 import tempfile
 import threading
 import time
@@ -56,6 +57,37 @@ class UserError(Exception):
     pass
 
 
+# Con BEETZW_DEBUG=1 yt-dlp scrive nei log del server tutto quello che fa
+# (utile su Render per capire perché un download fallisce).
+DEBUG = os.environ.get("BEETZW_DEBUG") == "1"
+
+
+class YdlLogger:
+    def debug(self, msg):
+        if DEBUG:
+            print("[yt-dlp]", msg, file=sys.stderr, flush=True)
+
+    def info(self, msg):
+        self.debug(msg)
+
+    def warning(self, msg):
+        print("[yt-dlp] WARNING", msg, file=sys.stderr, flush=True)
+
+    def error(self, msg):
+        print("[yt-dlp] ERROR", msg, file=sys.stderr, flush=True)
+
+
+def base_opts() -> dict:
+    return {
+        "quiet": True,
+        "no_warnings": False,
+        "noplaylist": True,
+        "verbose": DEBUG,
+        "logger": YdlLogger(),
+        "http_headers": {"User-Agent": UA},
+    }
+
+
 def detect_platform(url: str) -> str:
     for name, pattern in PLATFORMS.items():
         if pattern.search(url):
@@ -89,13 +121,9 @@ def spotify_to_search(url: str) -> tuple[str, dict]:
 
 
 def ydl_opts(fmt: str, outdir: str) -> dict:
-    opts = {
+    opts = base_opts() | {
         "outtmpl": str(Path(outdir) / "%(title).120B.%(ext)s"),
-        "noplaylist": True,
-        "quiet": True,
-        "no_warnings": True,
         "restrictfilenames": False,
-        "http_headers": {"User-Agent": UA},
     }
     if fmt == "mp4":
         opts["format"] = "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b"
@@ -187,7 +215,7 @@ def api_health():
         pot = True
     except Exception:
         pot = False
-    return jsonify(ok=True, pot=pot)
+    return jsonify(ok=True, pot=pot, version=3)
 
 
 @app.post("/api/info")
@@ -198,8 +226,7 @@ def api_info():
         if platform == "spotify":
             _, meta = spotify_to_search(url)
             return jsonify(platform=platform, **meta, duration=None)
-        with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True, "noplaylist": True,
-                               "http_headers": {"User-Agent": UA}}) as ydl:
+        with yt_dlp.YoutubeDL(base_opts()) as ydl:
             info = first_entry(ydl.extract_info(url, download=False))
         return jsonify(
             platform=platform,

@@ -8,3 +8,5 @@ services:
     envVars:
       - key: BEETZW_ORIGINS
         value: https://bisognaaverefede.github.io
+      - key: BEETZW_DEBUG
+        value: "1"
