@@ -181,7 +181,13 @@ def key_bpm():
 @app.get("/api/health")
 def api_health():
     # Il sito lo chiama all'apertura per svegliare il server gratuito.
-    return jsonify(ok=True)
+    # "pot" dice se il server dei PO token per YouTube è attivo.
+    try:
+        urllib.request.urlopen("http://127.0.0.1:4416/ping", timeout=1)
+        pot = True
+    except Exception:
+        pot = False
+    return jsonify(ok=True, pot=pot)
 
 
 @app.post("/api/info")

@@ -1,4 +1,5 @@
 flask
 yt-dlp[default]
+bgutil-ytdlp-pot-provider
 certifi
 gunicorn
